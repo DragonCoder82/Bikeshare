@@ -1,14 +1,15 @@
 import calendar
-import time
+import datetime as dt
 import pandas as pd
 import numpy as np
+import time
 
 CITY_DATA = { 'chicago': 'chicago.csv',
               'new york city': 'new_york_city.csv',
               'washington': 'washington.csv' }
 
-months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
-days = ['none', 'monday', 'tuesday', ' wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'all']
+days = ['monday', 'tuesday', ' wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 cities = ['chicago', 'new york city', 'washington']
 
 def get_filters():
@@ -25,18 +26,18 @@ def get_filters():
     # TO DO: get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
     while True:
         cities= ['chicago', 'new york city', 'washington']
-        city = input('Please choose a city one of the following cities: Chicago, New York City, and Washington:\n>>> ').lower()
+        city = input('Please choose one of the following cities: Chicago, New York City, and Washington:\n>>> ').lower()
         if city not in cities:
-            print('"{}" is currently not a city we have information on.'.format(city))
+            print('"{}" is currently not a city we have information on. Please try one of the following: Chicago, New York City or Washington.'.format(city))
             continue
         else:
             break
     # TO DO: get user input on what month they want data on.
     while True:
-        months= ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+        months= ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december', 'all']
         month = input('Please enter the month you would like additional information on:\n>>> ' ).lower()
         if month not in months:
-            print('"{}" is not a valid month. Please try again.' .format(month))
+            print('"{}" is not a valid month. Please choose one of the following: January, February, March, April, May, June, July, August, Septemeber, October, Novermber or December.' .format(month))
             continue
         else:
             break
@@ -46,7 +47,7 @@ def get_filters():
         days = ['monday', 'tuesday', ' wednesday', 'thursday', 'friday', 'saturday', 'sunday']
         day = input('Please enter the day you would like additional information on:\n>>> ', ).lower()
         if day not in days:
-            print('"{}" is not a valid day. Please try again.'.format(day))
+            print('"{}" is not a valid day. Please choose one of the following: Monday, Tuesday, Wednesday, Thursday, Froday, Saturday or Sunday.'.format(day))
             continue
         else:
             break
@@ -72,23 +73,22 @@ def load_data(city, month, day):
   df['Start Time'] = pd.to_datetime(df['Start Time'])
 
     # extract month and day of the week from Start Time to create new columns
-  df['Month'] = df['Start Time'].dt.month()
-  df['Day'] = dt['Start Time'].dt.day_name()
-  df['Hour'] = df['Start Time'].df.hour
+  df['month'] = df['Start Time'].dt.month
+  df['weekday'] = df['Start Time'].dt.day_name()
+  df['hour'] = df['Start Time'].dt.hour
 
     # filter by month if applicable
-  if month != 'None':
-        # use the index of the months list to get the corresponding:
-        months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
+  if month != 'All':
+        months = ['january', 'february', 'march', 'april', 'may', 'june']
         month = months.index(month)+1
     
         # filter by month to create the new dataframe:
         df = df[df['month']==month] 
 
     # filter by day of week if applicable
-  if day != 'None':
+  if day != 'All':
         # filter by day of week to create the new dataframe
-        df = df[df['Day']==day]
+        df = df[df['weekday']==day.title()]
   
 
   return df 
@@ -100,23 +100,21 @@ def time_stats(df):
     start_time = time.time()
 
     # TO DO: display the most common month
-    if month =='None':
-        pop_month= df['month'].mode()[0]
-        months= ['January','February','March','April','May','June', 'July', 'August', 'September', 'October', 'November', 'December']
-        pop_month= months[pop_month-1]
-        print("The most Popular month is",pop_month)
-
+    common_month = df['month'].mode()
+    print('The most common month is: ', common_month)
+    
 
      # TO DO: display the most common day of week
-    if day =='None':
-        pop_day= df['day_of_week'].mode()[0]
-        print("The most Popular day is",pop_day)
+   
+    common_day = df['weekday'].mode()
+    print('The most common day of the week is: ', common_day)
+
 
    #TO DO: display the most common start hour
     
     df['hour'] = df['Start Time'].dt.hour
     most_common_start_hour = df['hour'].value_counts().idxmax()
-    print("The most common start hour is :", most_common_start_hour)
+    print("The most common start hour is: ", most_common_start_hour)
 
 
     print("\nThis took %s seconds." % (time.time() - start_time))
@@ -140,7 +138,7 @@ def station_stats(df):
     # TO DO: display most frequent combination of start station and end station trip
     df['combination']=df['Start Station']+" "+"to"+" "+ df['End Station']
     popp_com= df['combination'].mode()[0]
-    print("The most frequent combination of Start and End Station is {} ".format(popp_com))
+    print("The most frequent combination of start and end station is {} ".format(popp_com))
 
 
     print("\nThis took %s seconds." % (time.time() - start_time))
@@ -180,43 +178,61 @@ def user_stats(df):
     start_time = time.time()
 
     # TO DO: Display counts of user types
-    user_counts = df['User Type'].value_counts()
-    print("The counts of each gender is: \n", gender_counts)
+    user_types = df['User Type'].value_counts()
+    print("The count of each gender is: \n", user_types)
 
     # TO DO: Display counts of gender
-    print("Counts of gender:\n")
-    gender_counts = df['Gender'].value_counts()
-    # iteratively print out the total numbers of genders 
-    for index,gender_count   in enumerate(gender_counts):
-        print("  {}: {}".format(gender_counts.index[index], gender_count))
+    if "Gender" in df.columns:
+        gender_type = df['Gender'].value_counts()
+        print('The gender types are below: \n')
+    else:
+        print("Gender column does not exist")
+
+        
+    # Display themost common year of birth
+    if "Birth Year" in df.columns:
+        birth_year = df['Birth Year'].mode()
+        print('The most common year of birth is: \n', birth_year)
+    else:
+        print("The birth year column doesn't exist")
+        
+    # Display the earliest year of birth
+    if "Birth Year" in df.columns:
+        birth_year_min = df['Birth Year'].min()
+        print('The earliest year of birth is: \n', birth_year_min)
+    else:
+        print("The birth year column doesn't exist")
+    # Display the most recent year of birth
+    if "Birth Year" in df.columns:
+        birth_year_max = df['Birth Year'].max()
+        print('The most recent birth year is: \n', birth_year_max)
+    else:
+        print("The birth year column doesn't exist.")
+
     
-    print()
-
-    # TO DO: Display earliest, most recent, and most common year of birth
-    earliest = int(df['Birth Year'].min())
-    print ("The oldest user was born in the year: ", earliest)              
-    most_recent = int(df['Birth Year'].max())
-    print("The youngest user was born in the year: ", recent)                          
-    most_common = int(df['Birth Year'].mode())
-    print("Most users were born in: ", most_common) 
-
     print("\nThis took %s seconds." % (time.time() - start_time))
     print('-'*40)
-
+    
 def main():
     while True:
         city, month, day = get_filters()
         df = load_data(city, month, day)
 
-        time_stats(df, month, day, hour)
+        time_stats(df)
         station_stats(df)
         trip_duration_stats(df)
-        user_stats(df,city)
-        display_data(df)
+        user_stats(df)
+ 
 
-        restart = input('\nWould you like to restart? Enter Yes or No.\n')
-        if restart.lower() != 'yes':
-            break
+view_data = input('\nWould you like to view 5 rows of individual trip data? Enter yes or no\n')
+start_loc = 0
 
+while (ask):
+  print(df.iloc[start_loc:start_loc +5])
+  start_loc += 5
+  view_data = input("Do you wish to continue?: ").lower()
+  if view_display == "no":
+        ask = False
+        
 if __name__ == "__main__":
 	main()
